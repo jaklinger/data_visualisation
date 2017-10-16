@@ -10,7 +10,7 @@ def fraction_bar(counts,labels,ax=None,cmap_name="Dark2",
         figsize = (10,1)
         if not horizontal:
             figsize = (1,10)
-            fig,ax = plt.subplots(figsize=figsize)
+        fig,ax = plt.subplots(figsize=figsize)
             
     # Assign colours
     colors = plt.get_cmap(cmap_name).colors
@@ -32,14 +32,14 @@ def fraction_bar(counts,labels,ax=None,cmap_name="Dark2",
         ax.set_xlim(0,x0)
         if legend:
             leg = ax.legend(loc='center left', bbox_to_anchor=(1, 0.5),title=title)
-        else:
-            ax.set_xlim(0,1)
-            ax.set_ylim(0,x0)
-            if legend:
-                word_height = 0.012
-                n_words = len(counts) + int(title != "")
-                box_height = 1 + (word_height*n_words) + word_height*2
-                leg = ax.legend(loc='center left', bbox_to_anchor=(-0.15,box_height),title=title)
+    else:
+        ax.set_xlim(0,1)
+        ax.set_ylim(0,x0)
+        if legend:
+            word_height = 0.012
+            n_words = len(counts) + int(title != "")
+            box_height = 1 + (word_height*n_words) + word_height*2
+            leg = ax.legend(loc='center left', bbox_to_anchor=(-0.15,box_height),title=title)
     # Return
     return ax
 
