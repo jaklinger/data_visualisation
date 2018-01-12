@@ -4,21 +4,29 @@ import pandas as pd
 from collections import Counter
 
 
-def stack(df, x, y,
+def _scale_dummies(row, dummy, weight):
+    if not pd.isnull(row[dummy]):
+        return row[dummy]*row[weight]
+    return row[dummy]
+
+
+def stack(df, x, y, weight=None,
           x_order=True, y_order=None, cmap_name=None,
-          ax=None, fractions=False, legend=True):
+          ax=None, fractions=False, legend=True, title=True):
     # Make dummies
     dummies = pd.get_dummies(df[y]).replace(0, np.nan)
     # Order the dummies if provided
     if y_order is not None:
         dummies = dummies[y_order]
-    dummies.columns = [c.title() for c in dummies.columns]
+    if title:
+        dummies.columns = [c.title() for c in dummies.columns]
 
     # Remove unrequired columns (all except x and the dummies)
     all_cols = list(df.columns)
     all_cols.remove(x)
+    if weight is not None:
+        all_cols.remove(weight)
     _df = pd.concat([df.drop(all_cols, axis=1), dummies], axis=1)
-
     # Sort x if specified
     if x_order:
         if type(x_order) is bool:
@@ -28,12 +36,21 @@ def stack(df, x, y,
         _df["sort_value"] = _df[x].apply(lambda x: x_order.index(x))
         _df = _df.sort_values(by="sort_value").drop(["sort_value"], axis=1)
 
+    # If a weight has been specified then scale each dummy
+    if weight is not None:
+        for dummy in dummies:
+            _df[dummy] = _df.apply(_scale_dummies, axis=1,
+                                   dummy=dummy, weight=weight)
+        _df.drop(weight, axis=1, inplace=True)
+
     # Generate an axis if not provided
     if ax is None:
         fig, ax = plt.subplots(figsize=(10, 3))
 
     # Count by group (don't autosort, since specified above)
     count = _df.groupby(x, sort=False).count()
+    if weight is not None:
+        count = _df.groupby(x, sort=False).sum()
     if fractions:
         # Normalise to row size if using fractions
         count = count.div(count.sum(axis=1), axis=0)
